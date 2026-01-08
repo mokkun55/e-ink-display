@@ -28,7 +28,7 @@ export const PALETTE: PaletteColor[] = [
 export function findNearestPaletteColor(
   r: number,
   g: number,
-  b: number,
+  b: number
 ): number {
   let minDistance = Infinity;
   let nearestIndex = 0;
@@ -37,7 +37,7 @@ export function findNearestPaletteColor(
     const [pr, pg, pb] = PALETTE[i].rgb;
     // ユークリッド距離を計算
     const distance = Math.sqrt(
-      Math.pow(r - pr, 2) + Math.pow(g - pg, 2) + Math.pow(b - pb, 2),
+      Math.pow(r - pr, 2) + Math.pow(g - pg, 2) + Math.pow(b - pb, 2)
     );
 
     if (distance < minDistance) {

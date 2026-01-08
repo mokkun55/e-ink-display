@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Orientation } from "@/config/display";
 
 interface DebugInfo {
   processingTimes: {
@@ -20,6 +21,7 @@ export default function DebugPage() {
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [orientation, setOrientation] = useState<Orientation>("landscape");
 
   const loadImages = async () => {
     setLoading(true);
@@ -27,7 +29,9 @@ export default function DebugPage() {
 
     try {
       // デバッグ情報を取得
-      const debugResponse = await fetch("/api/epaper?debugInfoOnly=true");
+      const debugResponse = await fetch(
+        `/api/epaper?debugInfoOnly=true&orientation=${orientation}`,
+      );
       if (!debugResponse.ok) {
         throw new Error("デバッグ情報の取得に失敗しました");
       }
@@ -35,22 +39,30 @@ export default function DebugPage() {
       setDebugInfo(debugData);
 
       // 元画像を取得
-      const originalResponse = await fetch("/api/epaper?original=true");
+      const originalResponse = await fetch(
+        `/api/epaper?original=true&orientation=${orientation}`,
+      );
       if (!originalResponse.ok) {
         throw new Error("元画像の取得に失敗しました");
       }
       const originalBlob = await originalResponse.blob();
-      const originalUrl = URL.createObjectURL(originalBlob);
-      setOriginalImageUrl(originalUrl);
+      setOriginalImageUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(originalBlob);
+      });
 
       // 加工後画像を取得
-      const processedResponse = await fetch("/api/epaper");
+      const processedResponse = await fetch(
+        `/api/epaper?orientation=${orientation}`,
+      );
       if (!processedResponse.ok) {
         throw new Error("加工後画像の取得に失敗しました");
       }
       const processedBlob = await processedResponse.blob();
-      const processedUrl = URL.createObjectURL(processedBlob);
-      setProcessedImageUrl(processedUrl);
+      setProcessedImageUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(processedBlob);
+      });
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "画像の読み込みに失敗しました",
@@ -72,13 +84,24 @@ export default function DebugPage() {
         URL.revokeObjectURL(processedImageUrl);
       }
     };
-  }, []);
+  }, [orientation]);
 
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-3xl font-bold mb-6">デバッグページ</h1>
 
-      <div className="mb-4">
+      <div className="mb-4 flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">向き:</label>
+          <select
+            value={orientation}
+            onChange={(e) => setOrientation(e.target.value as Orientation)}
+            className="px-3 py-1 border border-gray-300 rounded"
+          >
+            <option value="landscape">横方向 (800×480)</option>
+            <option value="portrait">縦方向 (480×800)</option>
+          </select>
+        </div>
         <button
           onClick={loadImages}
           disabled={loading}

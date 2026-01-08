@@ -6,11 +6,9 @@ import { applyFloydSteinbergDithering } from "@/utils/dithering";
 import { getImageData, encodeToPng } from "@/utils/image";
 import { loadFonts } from "@/utils/fonts";
 import type { DebugInfo } from "@/utils/debug";
+import { getDisplayDimensions, type Orientation } from "@/config/display";
 
 export const runtime = "nodejs";
-
-const WIDTH = 800;
-const HEIGHT = 480;
 
 /**
  * GET /api/epaper
@@ -34,6 +32,14 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const original = searchParams.get("original") === "true";
     const debugInfoOnly = searchParams.get("debugInfoOnly") === "true";
+
+    // 向きを取得（デフォルトはlandscape）
+    const orientationParam = searchParams.get("orientation");
+    const orientation: Orientation =
+      orientationParam === "portrait" ? "portrait" : "landscape";
+
+    // 解像度を取得
+    const { width: WIDTH, height: HEIGHT } = getDisplayDimensions(orientation);
 
     // ベースURLを取得（絶対URL用）
     const baseUrl = request.nextUrl.origin;

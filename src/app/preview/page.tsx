@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import { EpaperContent } from "@/components/EpaperContent";
+import type { Orientation } from "@/config/display";
+import { getDisplayDimensions } from "@/config/display";
 
 export default function PreviewPage() {
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
@@ -10,9 +12,10 @@ export default function PreviewPage() {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [autoReload, setAutoReload] = useState(true);
+  const [autoReload, setAutoReload] = useState(false);
   const [reloadInterval, setReloadInterval] = useState(2000); // 2秒
   const [previewScale, setPreviewScale] = useState(1);
+  const [orientation, setOrientation] = useState<Orientation>("landscape");
   const [isUsageOpen, setIsUsageOpen] = useState(false);
   const [isWarningOpen, setIsWarningOpen] = useState(false);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -24,7 +27,7 @@ export default function PreviewPage() {
     try {
       // 元画像を取得
       const originalResponse = await fetch(
-        `/api/epaper?original=true&t=${Date.now()}`,
+        `/api/epaper?original=true&orientation=${orientation}&t=${Date.now()}`,
       );
       if (!originalResponse.ok) {
         throw new Error("元画像の取得に失敗しました");
@@ -37,7 +40,9 @@ export default function PreviewPage() {
       });
 
       // 加工後画像を取得
-      const processedResponse = await fetch(`/api/epaper?t=${Date.now()}`);
+      const processedResponse = await fetch(
+        `/api/epaper?orientation=${orientation}&t=${Date.now()}`,
+      );
       if (!processedResponse.ok) {
         throw new Error("加工後画像の取得に失敗しました");
       }
@@ -61,7 +66,8 @@ export default function PreviewPage() {
     const updateScale = () => {
       if (previewContainerRef.current) {
         const containerWidth = previewContainerRef.current.offsetWidth;
-        const scale = containerWidth / 800; // 800pxが基準
+        const { width } = getDisplayDimensions(orientation);
+        const scale = containerWidth / width;
         setPreviewScale(scale);
       }
     };
@@ -69,7 +75,7 @@ export default function PreviewPage() {
     updateScale();
     window.addEventListener("resize", updateScale);
     return () => window.removeEventListener("resize", updateScale);
-  }, []);
+  }, [orientation]);
 
   useEffect(() => {
     loadImages();
@@ -94,7 +100,7 @@ export default function PreviewPage() {
         URL.revokeObjectURL(processedImageUrl);
       }
     };
-  }, [autoReload, reloadInterval]);
+  }, [autoReload, reloadInterval, orientation]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -105,6 +111,17 @@ export default function PreviewPage() {
             スタイリング確認ページ
           </h1>
           <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">向き:</label>
+              <select
+                value={orientation}
+                onChange={(e) => setOrientation(e.target.value as Orientation)}
+                className="rounded border border-gray-300 px-2 py-1 text-sm"
+              >
+                <option value="landscape">横方向 (800×480)</option>
+                <option value="portrait">縦方向 (480×800)</option>
+              </select>
+            </div>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -247,12 +264,14 @@ export default function PreviewPage() {
             <div
               ref={previewContainerRef}
               className="relative w-full overflow-hidden rounded border-2 border-gray-300 bg-white"
-              style={{ aspectRatio: "800/480" }}
+              style={{
+                aspectRatio: `${getDisplayDimensions(orientation).width}/${getDisplayDimensions(orientation).height}`,
+              }}
             >
               <div
                 style={{
-                  width: "800px",
-                  height: "480px",
+                  width: `${getDisplayDimensions(orientation).width}px`,
+                  height: `${getDisplayDimensions(orientation).height}px`,
                   transform: `scale(${previewScale})`,
                   transformOrigin: "top left",
                 }}
