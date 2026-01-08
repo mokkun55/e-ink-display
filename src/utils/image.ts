@@ -10,10 +10,10 @@ import sharp from "sharp";
 export async function getImageData(
   buffer: Buffer,
   width: number,
-  height: number,
+  height: number
 ): Promise<Uint8Array> {
   // sharpでRGBA形式のrawデータを取得
-  const { data, info } = await sharp(buffer)
+  const { data } = await sharp(buffer)
     .resize(width, height, { fit: "fill" })
     .ensureAlpha()
     .raw()
@@ -32,7 +32,7 @@ export async function getImageData(
 export async function encodeToPng(
   imageData: Uint8Array,
   width: number,
-  height: number,
+  height: number
 ): Promise<Buffer> {
   return await sharp(imageData, {
     raw: {

@@ -3,7 +3,7 @@
  * next/ogのImageResponseで使用するReactコンポーネント
  */
 
-export function EpaperContent() {
+export function EpaperTestContent() {
   const now = new Date();
   const timeString = now.toLocaleTimeString("ja-JP", {
     hour: "2-digit",
