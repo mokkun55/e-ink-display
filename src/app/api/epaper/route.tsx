@@ -35,6 +35,9 @@ export async function GET(request: NextRequest) {
     const original = searchParams.get("original") === "true";
     const debugInfoOnly = searchParams.get("debugInfoOnly") === "true";
 
+    // ベースURLを取得（絶対URL用）
+    const baseUrl = request.nextUrl.origin;
+
     // フォントを読み込む
     const fonts = await loadFonts();
 
@@ -65,7 +68,7 @@ export async function GET(request: NextRequest) {
             padding: 0,
           }}
         >
-          <EpaperContent />
+          <EpaperContent baseUrl={baseUrl} />
         </div>
       ),
       imageResponseOptions

@@ -2,8 +2,15 @@
  * 電子ペーパー表示用コンテンツ
  * next/ogのImageResponseで使用するReactコンポーネント
  */
+/** biome-ignore-all lint/performance/noImgElement: ogにするので許可する */
 
-export function EpaperContent() {
+interface EpaperContentProps {
+  baseUrl?: string;
+}
+
+export function EpaperContent({
+  baseUrl = "http://localhost:3000",
+}: EpaperContentProps) {
   return (
     <div
       style={{
@@ -19,8 +26,10 @@ export function EpaperContent() {
         boxSizing: "border-box",
       }}
     >
-      <h1 style={{ margin: 0, marginBottom: "8px" }}>ほげほげ</h1>
-      <p style={{ margin: 0, marginBottom: "8px" }}>ふがふが</p>
+      <img
+        src={`${baseUrl}/images/minecraft-animals.jpg`}
+        alt="minecraft-animals"
+      />
     </div>
   );
 }
