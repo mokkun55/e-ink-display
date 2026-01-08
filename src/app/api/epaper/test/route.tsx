@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { EpaperContent } from "@/components/EpaperContent";
+import { EpaperTestContent } from "@/components/EpaperTestContent";
 import { applyFloydSteinbergDithering } from "@/utils/dithering";
 import { getImageData, encodeToPng } from "@/utils/image";
 import { loadFonts } from "@/utils/fonts";
@@ -13,8 +13,8 @@ const WIDTH = 800;
 const HEIGHT = 480;
 
 /**
- * GET /api/epaper
- * 7色電子ペーパー用画像を生成するAPI
+ * GET /api/epaper/test
+ * テスト用コンテンツ（EpaperTestContent）を表示するAPI
  */
 export async function GET(request: NextRequest) {
   const startTime = performance.now();
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
             padding: 0,
           }}
         >
-          <EpaperContent />
+          <EpaperTestContent />
         </div>
       ),
       imageResponseOptions
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error generating epaper image:", error);
+    console.error("Error generating epaper test image:", error);
 
     // エラーレスポンス
     return NextResponse.json(

@@ -64,6 +64,55 @@ curl http://localhost:3000/api/epaper?original=true -o original.png
 curl http://localhost:3000/api/epaper?debugInfoOnly=true
 ```
 
+#### `/api/epaper/test` - テスト用画像生成 API
+
+テスト用コンテンツ（`EpaperTestContent`）を表示する画像生成 API です。7色テストパターンや図形サンプルを含むテストコンテンツを生成します。
+
+**基本的な使い方:**
+
+```bash
+GET /api/epaper/test
+```
+
+**クエリパラメータ:**
+
+- `original=true`: 減色処理前の元画像を返す
+- `debugInfoOnly=true`: デバッグ情報（処理時間）を JSON 形式で返す
+
+**例:**
+
+```bash
+# テスト用減色処理済み画像を取得
+curl http://localhost:3000/api/epaper/test -o test-output.png
+
+# テスト用元画像を取得
+curl http://localhost:3000/api/epaper/test?original=true -o test-original.png
+```
+
+### プレビューページ
+
+`/preview` にアクセスすると、HTMLプレビューとPNG画像を並べて比較表示できるプレビューページが開きます。
+
+```
+http://localhost:3000/preview
+```
+
+プレビューページでは以下が確認できます：
+
+- HTMLプレビュー（実際のReactコンポーネント表示）
+- 元PNG画像（next/ogで生成された画像）
+- 加工済みPNG画像（ディザリング処理後）
+
+**⚠️ 注意事項:**
+
+CSSの都合上、HTMLプレビューとPNGプレビューでスタイリングの差が出る場合があります。これは、`next/og`の`ImageResponse`がブラウザのレンダリングエンジンとは異なるレンダリングエンジンを使用するためです。特に以下の点に注意してください：
+
+- フォントのレンダリング方法が異なる場合がある
+- CSSの一部のプロパティが完全にサポートされていない場合がある
+- ブラウザで表示されるHTMLと、実際に生成されるPNG画像で見た目が異なる可能性がある
+
+最終的な見た目を確認する際は、PNG画像（特に加工済みPNG画像）を参考にしてください。
+
 ### デバッグページ
 
 `/debug` にアクセスすると、元画像と加工後画像を比較表示できるデバッグページが開きます。
@@ -171,12 +220,17 @@ src/
 ├── app/
 │   ├── api/
 │   │   └── epaper/
-│   │       └── route.tsx       # API エンドポイント
+│   │       ├── route.tsx       # API エンドポイント
+│   │       └── test/
+│   │           └── route.tsx   # テスト用API エンドポイント
 │   ├── debug/
 │   │   └── page.tsx            # デバッグページ
+│   ├── preview/
+│   │   └── page.tsx            # プレビューページ
 │   └── ...
 ├── components/
-│   └── EpaperContent.tsx       # 電子ペーパー表示コンテンツ
+│   ├── EpaperContent.tsx       # 電子ペーパー表示コンテンツ
+│   └── EpaperTestContent.tsx   # テスト用コンテンツ
 ├── config/
 │   └── palette.ts              # 色パレット定義
 └── utils/

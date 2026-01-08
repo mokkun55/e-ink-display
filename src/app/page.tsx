@@ -105,6 +105,16 @@ export default function Home() {
                 </Link>{" "}
                 にアクセスすると、PNG画像が生成されます。
               </p>
+              <p className="mt-2 text-sm text-gray-600">
+                テスト用コンテンツは{" "}
+                <Link
+                  href="/api/epaper/test"
+                  className="font-medium text-blue-600 hover:text-blue-700"
+                >
+                  /api/epaper/test
+                </Link>{" "}
+                で確認できます。
+              </p>
             </div>
           </div>
         </div>
@@ -120,12 +130,24 @@ export default function Home() {
               <h4 className="mb-2 text-lg font-semibold text-gray-800">
                 基本エンドポイント
               </h4>
-              <div className="rounded-lg bg-gray-50 p-4">
-                <code className="text-sm text-gray-900">GET /api/epaper</code>
+              <div className="space-y-3">
+                <div>
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <code className="text-sm text-gray-900">GET /api/epaper</code>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-600">
+                    減色処理済みの800×480ピクセルのPNG画像を返します。
+                  </p>
+                </div>
+                <div>
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <code className="text-sm text-gray-900">GET /api/epaper/test</code>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-600">
+                    テスト用コンテンツ（7色テストパターンなど）を表示する画像を返します。
+                  </p>
+                </div>
               </div>
-              <p className="mt-2 text-sm text-gray-600">
-                減色処理済みの800×480ピクセルのPNG画像を返します。
-              </p>
             </div>
 
             <div>
@@ -155,7 +177,20 @@ export default function Home() {
         </div>
 
         {/* リンクセクション */}
-        <div className="mb-16 grid gap-4 sm:grid-cols-2">
+        <div className="mb-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Link
+            href="/preview"
+            className="group rounded-xl bg-green-600 p-6 text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md"
+          >
+            <div className="mb-2 text-lg font-semibold">スタイリング確認 →</div>
+            <p className="text-sm text-green-100">
+              HTML・元PNG・加工済みPNGを並べて確認
+            </p>
+            <p className="mt-1 text-xs text-green-200">
+              ⚠️ HTMLとPNGでスタイリングの差が出る場合があります
+            </p>
+          </Link>
+
           <Link
             href="/api/epaper"
             className="group rounded-xl bg-blue-600 p-6 text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md"
@@ -163,6 +198,16 @@ export default function Home() {
             <div className="mb-2 text-lg font-semibold">画像を生成 →</div>
             <p className="text-sm text-blue-100">
               APIエンドポイントにアクセスして画像を確認
+            </p>
+          </Link>
+
+          <Link
+            href="/api/epaper/test"
+            className="group rounded-xl bg-purple-600 p-6 text-white shadow-sm transition-all hover:bg-purple-700 hover:shadow-md"
+          >
+            <div className="mb-2 text-lg font-semibold">テスト画像を生成 →</div>
+            <p className="text-sm text-purple-100">
+              テスト用コンテンツ（7色テストパターン）を確認
             </p>
           </Link>
 
