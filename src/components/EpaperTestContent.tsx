@@ -26,7 +26,7 @@ export function EpaperTestContent() {
         height: "100%",
         backgroundColor: "#ffffff",
         padding: "30px",
-        fontFamily: "Noto Sans JP, Inter, sans-serif",
+        fontFamily: "M PLUS 1",
         overflow: "hidden",
       }}
     >

@@ -66,7 +66,7 @@ curl http://localhost:3000/api/epaper?debugInfoOnly=true
 
 #### `/api/epaper/test` - テスト用画像生成 API
 
-テスト用コンテンツ（`EpaperTestContent`）を表示する画像生成 API です。7色テストパターンや図形サンプルを含むテストコンテンツを生成します。
+テスト用コンテンツ（`EpaperTestContent`）を表示する画像生成 API です。7 色テストパターンや図形サンプルを含むテストコンテンツを生成します。
 
 **基本的な使い方:**
 
@@ -91,7 +91,7 @@ curl http://localhost:3000/api/epaper/test?original=true -o test-original.png
 
 ### プレビューページ
 
-`/preview` にアクセスすると、HTMLプレビューとPNG画像を並べて比較表示できるプレビューページが開きます。
+`/preview` にアクセスすると、HTML プレビューと PNG 画像を並べて比較表示できるプレビューページが開きます。
 
 ```
 http://localhost:3000/preview
@@ -99,19 +99,19 @@ http://localhost:3000/preview
 
 プレビューページでは以下が確認できます：
 
-- HTMLプレビュー（実際のReactコンポーネント表示）
-- 元PNG画像（next/ogで生成された画像）
-- 加工済みPNG画像（ディザリング処理後）
+- HTML プレビュー（実際の React コンポーネント表示）
+- 元 PNG 画像（next/og で生成された画像）
+- 加工済み PNG 画像（ディザリング処理後）
 
 **⚠️ 注意事項:**
 
-CSSの都合上、HTMLプレビューとPNGプレビューでスタイリングの差が出る場合があります。これは、`next/og`の`ImageResponse`がブラウザのレンダリングエンジンとは異なるレンダリングエンジンを使用するためです。特に以下の点に注意してください：
+CSS の都合上、HTML プレビューと PNG プレビューでスタイリングの差が出る場合があります。これは、`next/og`の`ImageResponse`がブラウザのレンダリングエンジンとは異なるレンダリングエンジンを使用するためです。特に以下の点に注意してください：
 
 - フォントのレンダリング方法が異なる場合がある
-- CSSの一部のプロパティが完全にサポートされていない場合がある
-- ブラウザで表示されるHTMLと、実際に生成されるPNG画像で見た目が異なる可能性がある
+- CSS の一部のプロパティが完全にサポートされていない場合がある
+- ブラウザで表示される HTML と、実際に生成される PNG 画像で見た目が異なる可能性がある
 
-最終的な見た目を確認する際は、PNG画像（特に加工済みPNG画像）を参考にしてください。
+最終的な見た目を確認する際は、PNG 画像（特に加工済み PNG 画像）を参考にしてください。
 
 ### デバッグページ
 
@@ -145,42 +145,91 @@ http://localhost:3000/debug
 
 ### デフォルトフォント
 
-デフォルトでは以下のフォントが使用されます：
+現在は以下のフォントが使用されています：
 
-- **日本語**: Noto Sans JP（Google Fonts）
-- **英語**: Inter（Google Fonts）
+- **M PLUS 1**: `public/fonts/MPLUS1-Medium.ttf`
 
 フォントの読み込み処理は `src/utils/fonts.ts` で実装されています。
 
 ### フォントの変更方法
 
-1. **`src/utils/fonts.ts` を編集**
+OG 画像のフォントを変更する場合は、以下の手順に従ってください。
 
-   - `loadNotoSansJP()` 関数で日本語フォントの URL を変更
-   - `loadInter()` 関数で英語フォントの URL を変更
+#### 手順
 
-2. **Google Fonts 以外のフォントを使用する場合**
-   - フォントファイルを `public/fonts/` に配置
-   - `loadFont()` 関数でローカルパスを指定
+1. **フォントファイルを配置**
 
-**例: ローカルフォントを使用**
+   使用したいフォントファイル（`.ttf` 形式）を `public/fonts/` ディレクトリに配置します。
 
-```typescript
-export async function loadNotoSansJP(): Promise<ArrayBuffer | null> {
-  try {
-    // ローカルフォントファイルを読み込む
-    const fontPath = path.join(
-      process.cwd(),
-      "public/fonts/NotoSansJP-Regular.ttf"
-    );
-    const fontData = await fs.promises.readFile(fontPath);
-    return fontData.buffer;
-  } catch (error) {
-    console.warn("Failed to load Noto Sans JP:", error);
-    return null;
-  }
-}
-```
+   ```bash
+   # 例: フォントファイルを public/fonts/ に配置
+   cp /path/to/your-font.ttf public/fonts/YourFont-Regular.ttf
+   ```
+
+2. **`src/utils/fonts.ts` を編集**
+
+   `loadMPLUS1Medium()` 関数を新しいフォントを読み込む関数に変更し、フォント名も更新します。
+
+   ```typescript
+   export async function loadYourFont(): Promise<Buffer | null> {
+     try {
+       // フォントファイルのパスを指定
+       const fontPath = path.join(
+         process.cwd(),
+         "public/fonts/YourFont-Regular.ttf"
+       );
+       const fontData = fs.readFileSync(fontPath);
+       return fontData;
+     } catch (error) {
+       console.warn("Failed to load Your Font:", error);
+       return null;
+     }
+   }
+
+   export async function loadFonts() {
+     const yourFont = await loadYourFont();
+     const fonts = [];
+
+     if (yourFont) {
+       fonts.push({
+         name: "Your Font Name", // フォント名を指定（実際のフォント名に合わせる）
+         data: yourFont,
+         weight: 400 as const,
+         style: "normal" as const,
+       });
+     }
+
+     if (fonts.length === 0) {
+       console.warn("No fonts loaded. Using system fonts.");
+     }
+
+     return fonts;
+   }
+   ```
+
+3. **コンポーネントのフォント名を更新**
+
+   使用しているコンポーネント（`EpaperContent.tsx`、`EpaperTestContent.tsx` など）の `fontFamily` プロパティを新しいフォント名に変更します。
+
+   ```typescript
+   // src/components/EpaperContent.tsx など
+   style={{
+     fontFamily: "Your Font Name",  // 手順2で指定したフォント名と一致させる
+     // ...
+   }}
+   ```
+
+#### 注意事項
+
+- フォント名は、`loadFonts()` で指定した `name` と、コンポーネント内の `fontFamily` が完全に一致している必要があります
+- フォントファイルが大きい場合、Edge ランタイムでは動作しない可能性があります（Node.js ランタイムを使用している場合は問題ありません）
+- フォントファイルの内部メタデータに基づく実際のフォント名が異なる場合は、そのフォント名を使用してください
+
+#### 参考記事
+
+この実装は以下の記事を参考にしています：
+
+- [【Next.js / App Router】 opengraph-image.tsx の OG 画像内フォントの変更方法](https://zenn.dev/ryota_09/articles/cdef1901df899b)
 
 ### フォント読み込みエラー時の動作
 

@@ -2,63 +2,37 @@
  * next/og (Satori) 用フォント読み込みユーティリティ
  */
 
+import fs from "node:fs";
+import path from "node:path";
+
 /**
- * フォントデータを読み込む
- * @param url フォントファイルのURL（相対パスまたはCDN URL）
- * @returns ArrayBuffer または null（失敗時）
+ * ローカルフォントファイルからM PLUS 1 Mediumを読み込む
+ * @returns フォントデータ（Buffer）またはnull（失敗時）
  */
-async function loadFont(url: string): Promise<ArrayBuffer | null> {
+export async function loadMPLUS1Medium(): Promise<Buffer | null> {
   try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; Next.js ImageResponse)",
-      },
-    });
-    if (!response.ok) {
-      return null;
-    }
-    return await response.arrayBuffer();
-  } catch {
+    const fontPath = path.join(process.cwd(), "public/fonts/MPLUS1-Medium.ttf");
+    const fontData = fs.readFileSync(fontPath);
+    return fontData;
+  } catch (error) {
+    console.warn("Failed to load M PLUS 1 Medium font:", error);
     return null;
   }
 }
 
 /**
- * Google Fonts APIからNoto Sans JPを読み込む
- * @returns フォントデータ（ArrayBuffer）またはnull（失敗時）
+ * ローカルフォントファイルからM PLUS 1 Boldを読み込む
+ * @returns フォントデータ（Buffer）またはnull（失敗時）
  */
-export async function loadNotoSansJP(): Promise<ArrayBuffer | null> {
-  // Google Fonts APIからNoto Sans JPを取得（Regular）
-  const url =
-    "https://fonts.gstatic.com/s/notosansjp/v52/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFBEj75s.ttf";
-  const result = await loadFont(url);
-  if (!result) {
-    console.warn("Failed to load Noto Sans JP, using system fonts");
+export async function loadMPLUS1Bold(): Promise<Buffer | null> {
+  try {
+    const fontPath = path.join(process.cwd(), "public/fonts/MPLUS1-Bold.ttf");
+    const fontData = fs.readFileSync(fontPath);
+    return fontData;
+  } catch (error) {
+    console.warn("Failed to load M PLUS 1 Bold font:", error);
+    return null;
   }
-  return result;
-}
-
-/**
- * Google Fonts APIからInterを読み込む
- * @returns フォントデータ（ArrayBuffer）またはnull（失敗時）
- */
-export async function loadInter(): Promise<ArrayBuffer | null> {
-  // Interフォントはオプションなので、失敗しても静かに処理
-  // Google Fonts APIからInterを取得（Regular）
-  // 複数のURLを試す
-  const urls = [
-    "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2",
-    "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA-Ek-_EeA.ttf",
-  ];
-
-  for (const url of urls) {
-    const result = await loadFont(url);
-    if (result) {
-      return result;
-    }
-  }
-  // すべてのURLが失敗した場合（エラーメッセージは表示しない）
-  return null;
 }
 
 /**
@@ -67,47 +41,31 @@ export async function loadInter(): Promise<ArrayBuffer | null> {
  * フォント読み込みに失敗した場合は空配列を返す（システムフォントを使用）
  */
 export async function loadFonts() {
-  const [notoSansJP, inter] = await Promise.all([
-    loadNotoSansJP(),
-    loadInter(),
+  const [mplus1Medium, mplus1Bold] = await Promise.all([
+    loadMPLUS1Medium(),
+    loadMPLUS1Bold(),
   ]);
 
   const fonts = [];
 
-  // Noto Sans JPが読み込めた場合
-  if (notoSansJP) {
-    fonts.push(
-      {
-        name: "Noto Sans JP",
-        data: notoSansJP,
-        weight: 400 as const,
-        style: "normal" as const,
-      },
-      {
-        name: "Noto Sans JP",
-        data: notoSansJP,
-        weight: 700 as const,
-        style: "normal" as const,
-      }
-    );
+  // M PLUS 1 Mediumが読み込めた場合
+  if (mplus1Medium) {
+    fonts.push({
+      name: "M PLUS 1",
+      data: mplus1Medium,
+      weight: 400 as const,
+      style: "normal" as const,
+    });
   }
 
-  // Interが読み込めた場合
-  if (inter) {
-    fonts.push(
-      {
-        name: "Inter",
-        data: inter,
-        weight: 400 as const,
-        style: "normal" as const,
-      },
-      {
-        name: "Inter",
-        data: inter,
-        weight: 700 as const,
-        style: "normal" as const,
-      }
-    );
+  // M PLUS 1 Boldが読み込めた場合
+  if (mplus1Bold) {
+    fonts.push({
+      name: "M PLUS 1",
+      data: mplus1Bold,
+      weight: 700 as const,
+      style: "normal" as const,
+    });
   }
 
   // フォントが1つも読み込めなかった場合は警告を出すが、空配列を返す
