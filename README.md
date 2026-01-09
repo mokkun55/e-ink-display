@@ -27,6 +27,70 @@ pnpm dev
 
 開発サーバーは `http://localhost:3000` で起動します。
 
+### 環境変数の設定
+
+Google Calendar API から予定を取得する場合は、`.env.local` ファイルを作成して以下の環境変数を設定してください。
+
+```bash
+# 認証方法を選択（oauth2 または service_account）
+GOOGLE_AUTH_TYPE=oauth2
+
+# OAuth 2.0 認証の場合
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/callback
+GOOGLE_REFRESH_TOKEN=your-refresh-token
+
+# サービスアカウント認証の場合
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# カレンダーID（通常は "primary" または特定のカレンダーID）
+GOOGLE_CALENDAR_ID=primary
+
+# 予定取得期間（日数、デフォルト: 30日）
+GOOGLE_CALENDAR_DAYS=30
+```
+
+**注意**: 環境変数が設定されていない場合、モックデータが使用されます。
+
+### リフレッシュトークンの取得方法
+
+OAuth 2.0 認証を使用する場合、リフレッシュトークンが必要です。以下の方法で取得できます。
+
+#### 方法 1: 自動取得（推奨）
+
+1. 必要な環境変数を設定（`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`）
+2. 開発サーバーを起動
+3. ブラウザで `/api/auth/google` にアクセス
+4. Google の認証ページでアカウントを選択し、権限を許可
+5. 認証成功ページに表示されたリフレッシュトークンをコピー
+6. `.env.local` ファイルに `GOOGLE_REFRESH_TOKEN` として設定
+
+```bash
+# 1. 開発サーバーを起動
+pnpm dev
+
+# 2. ブラウザで以下にアクセス
+# http://localhost:3000/api/auth/google
+```
+
+#### 方法 2: Google OAuth 2.0 Playground（手動取得）
+
+1. [Google OAuth 2.0 Playground](https://developers.google.com/oauthplayground/) にアクセス
+2. 右上の歯車アイコンをクリックして「Use your own OAuth credentials」にチェック
+3. `OAuth Client ID` と `OAuth Client secret` を入力
+4. 左側の「Calendar API v3」を展開し、`https://www.googleapis.com/auth/calendar.readonly` を選択
+5. 「Authorize APIs」をクリックして認証
+6. 「Exchange authorization code for tokens」をクリック
+7. 表示された `refresh_token` をコピーして `.env.local` に設定
+
+#### リフレッシュトークンとは？
+
+- **アクセストークン**: 短命（通常 1 時間）で、API 呼び出しに使用
+- **リフレッシュトークン**: 長期間有効で、アクセストークンの期限が切れた際に新しいアクセストークンを取得するために使用
+- サーバーサイドアプリケーションでは、リフレッシュトークンを保存しておくことで、ユーザーに再認証を求めずに API を継続的に使用できます
+
 ## 📖 使用方法
 
 ### API エンドポイント

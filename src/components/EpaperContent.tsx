@@ -11,10 +11,12 @@ import { getColorIdsByDate } from "@/utils/calendar";
 
 interface EpaperContentProps {
   baseUrl?: string;
+  events?: GoogleCalendarEvent[];
 }
 
 export function EpaperContent({
-  baseUrl = "http://localhost:3000", // TODO 環境変数で持つようにしたほうがいいかな
+  baseUrl: _baseUrl = "http://localhost:3000", // TODO 環境変数で持つようにしたほうがいいかな
+  events: propEvents,
 }: EpaperContentProps) {
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString("ja-JP", {
@@ -24,7 +26,7 @@ export function EpaperContent({
     weekday: "short",
   });
 
-  // Google Calendar API形式のモック予定データ
+  // Google Calendar API形式のモック予定データ（フォールバック用）
   const mockCalendarEvents: GoogleCalendarEvent[] = [
     {
       summary: "A社定例MTG",
@@ -183,8 +185,11 @@ export function EpaperContent({
     },
   ];
 
+  // 予定データ（propsで渡された場合はそれを使用、なければモックデータ）
+  const calendarEvents = propEvents ?? mockCalendarEvents;
+
   // カレンダー表示用の色データ（日付: 色の配列）
-  const calendarColorData = getColorIdsByDate(mockCalendarEvents);
+  const calendarColorData = getColorIdsByDate(calendarEvents);
 
   return (
     <div
@@ -271,7 +276,7 @@ export function EpaperContent({
               marginTop: "8px",
             }}
           >
-            <EventList events={mockCalendarEvents} />
+            <EventList events={calendarEvents} />
           </div>
         </div>
       </div>

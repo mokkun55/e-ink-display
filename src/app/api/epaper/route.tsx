@@ -7,6 +7,7 @@ import { getImageData, encodeToPng } from "@/utils/image";
 import { loadFonts } from "@/utils/fonts";
 import type { DebugInfo } from "@/utils/debug";
 import { getDisplayDimensions, type Orientation } from "@/config/display";
+import type { GoogleCalendarEvent } from "@/utils/calendar";
 
 export const runtime = "nodejs";
 
@@ -44,6 +45,26 @@ export async function GET(request: NextRequest) {
     // ベースURLを取得（絶対URL用）
     const baseUrl = request.nextUrl.origin;
 
+    // Google Calendar APIから予定を取得
+    let calendarEvents: GoogleCalendarEvent[] | undefined;
+    try {
+      const calendarResponse = await fetch(`${baseUrl}/api/calendar`, {
+        cache: "no-store",
+      });
+      if (calendarResponse.ok) {
+        const calendarData = await calendarResponse.json();
+        calendarEvents = calendarData.events;
+      } else {
+        // カレンダーAPIの取得に失敗した場合はモックデータを使用
+      }
+    } catch (error) {
+      // カレンダーAPIの呼び出しに失敗した場合はモックデータを使用
+      console.error(
+        "カレンダーAPIの呼び出しに失敗:",
+        error instanceof Error ? error.message : "Unknown error"
+      );
+    }
+
     // フォントを読み込む
     const fonts = await loadFonts();
 
@@ -74,7 +95,7 @@ export async function GET(request: NextRequest) {
             padding: 0,
           }}
         >
-          <EpaperContent baseUrl={baseUrl} />
+          <EpaperContent baseUrl={baseUrl} events={calendarEvents} />
         </div>
       ),
       imageResponseOptions
