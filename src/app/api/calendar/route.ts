@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
 
     if (authType === "service_account") {
       // サービスアカウント認証
+      console.log("サービスアカウント認証を使用します");
       if (
         !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
         !process.env.GOOGLE_PRIVATE_KEY
@@ -58,6 +59,7 @@ export async function GET(request: NextRequest) {
       });
     } else {
       // OAuth 2.0認証
+      console.log("OAuth 2.0認証を使用します");
       if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
         console.error("OAuth 2.0認証情報が不足しています");
         console.error(
@@ -85,6 +87,7 @@ export async function GET(request: NextRequest) {
 
       // リフレッシュトークンが設定されている場合
       if (process.env.GOOGLE_REFRESH_TOKEN) {
+        console.log("リフレッシュトークンを使用して認証します");
         oauth2Client.setCredentials({
           refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
         });
@@ -116,6 +119,10 @@ export async function GET(request: NextRequest) {
       Date.now() + days * 24 * 60 * 60 * 1000
     ).toISOString();
 
+    console.log("カレンダーイベントを取得します");
+    console.log("取得期間:", timeMin, "～", timeMax);
+    console.log("カレンダーID:", calendarId);
+
     // カレンダーイベントを取得
     const response = await calendar.events.list({
       calendarId,
@@ -125,6 +132,8 @@ export async function GET(request: NextRequest) {
       singleEvents: true,
       orderBy: "startTime",
     });
+
+    console.log("取得したイベント数:", response.data.items?.length || 0);
 
     // Google Calendar APIのレスポンスをGoogleCalendarEvent型に変換
     const events: GoogleCalendarEvent[] = (response.data.items || []).map(

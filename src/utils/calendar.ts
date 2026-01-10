@@ -29,25 +29,34 @@ export interface GoogleCalendarEvent {
 }
 
 /**
- * colorIdからGoogle Calendar公式の色コードに変換
- * Google CalendarのcolorId（"1"～"11"）を公式カラーパレットにマッピング
+ * colorIdから電子ペーパー用7色パレットの色コードに変換
+ * Google CalendarのcolorId（"1"～"11"）を電子ペーパーの7色パレットにマッピング
  * 参考: https://developers.google.com/calendar/api/v3/reference/colors
+ *
+ * 電子ペーパーの7色パレット:
+ * - 黒: #000000
+ * - 白: #FFFFFF
+ * - 緑: #00FF00
+ * - 青: #0000FF
+ * - 赤: #FF0000
+ * - 黄: #FFFF00
+ * - オレンジ: #FF8000
  */
 export function getColorByColorId(colorId?: string): string {
   const colorMap: Record<string, string> = {
-    "1": "#7986CB", // ラベンダー (Lavender)
-    "2": "#33B679", // セージ (Sage)
-    "3": "#8E24AA", // ブドウ (Grape)
-    "4": "#E67C73", // フラミンゴ (Flamingo)
-    "5": "#F6BF26", // バナナ (Banana)
-    "6": "#F4511E", // ミカン (Mikan/Tangerine)
-    "7": "#039BE5", // ピーコック (Peacock)
-    "8": "#616161", // グラファイト (Graphite)
-    "9": "#3F51B5", // ブルーベリー (Blueberry)
-    "10": "#0B8043", // バジル (Basil)
-    "11": "#D50000", // トマト (Tomato)
+    "1": "#0000FF", // ラベンダー (Lavender) → 青
+    "2": "#00FF00", // セージ (Sage) → 緑
+    "3": "#0000FF", // ブドウ (Grape) → 青
+    "4": "#FF0000", // フラミンゴ (Flamingo) → 赤
+    "5": "#FFFF00", // バナナ (Banana) → 黄
+    "6": "#FF8000", // ミカン (Mikan/Tangerine) → オレンジ
+    "7": "#0000FF", // ピーコック (Peacock) → 青
+    "8": "#000000", // グラファイト (Graphite) → 黒
+    "9": "#0000FF", // ブルーベリー (Blueberry) → 青
+    "10": "#00FF00", // バジル (Basil) → 緑
+    "11": "#FF0000", // トマト (Tomato) → 赤
   };
-  return colorMap[colorId ?? ""] || "#000000"; // デフォルトは黒
+  return colorMap[colorId ?? ""] || "#0000FF"; // デフォルトは水色（青）
 }
 
 /**
@@ -100,7 +109,7 @@ export function getColorIdsByDate(
     const day = Number.parseInt(dayStr, 10);
     result[day] = dayEvents
       .map((event) => getColorByColorId(event.colorId))
-      .filter((color) => color !== "#000000"); // デフォルト色は除外
+      .filter((color) => color !== "#000000"); // 黒色は除外（デフォルトは水色なので表示される）
   });
 
   return result;

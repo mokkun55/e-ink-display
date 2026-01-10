@@ -61,7 +61,7 @@ export function EventList({
           padding: "8px",
         }}
       >
-        <div style={{ color: "#666666" }}>予定はありません</div>
+        <div style={{ color: "#000" }}>予定はありません</div>
       </div>
     );
   }
@@ -95,7 +95,7 @@ export function EventList({
               display: "flex",
               alignItems: "center",
               gap: "4px",
-              paddingBottom: "2px",
+              // paddingBottom: "2px",
             }}
           >
             {/* 色ドット */}
@@ -113,7 +113,7 @@ export function EventList({
               <div
                 style={{
                   fontSize: "10px",
-                  color: "#666666",
+                  color: "#000",
                   minWidth: "32px",
                 }}
               >
@@ -124,7 +124,7 @@ export function EventList({
               <div
                 style={{
                   fontSize: "10px",
-                  color: "#666666",
+                  color: "#000",
                   minWidth: "32px",
                 }}
               >

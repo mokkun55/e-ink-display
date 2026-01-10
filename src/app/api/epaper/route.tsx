@@ -55,14 +55,22 @@ export async function GET(request: NextRequest) {
         const calendarData = await calendarResponse.json();
         calendarEvents = calendarData.events;
       } else {
-        // カレンダーAPIの取得に失敗した場合はモックデータを使用
+        const errorData = await calendarResponse.json().catch(() => ({}));
+        console.warn("=== カレンダー予定の取得に失敗 ===");
+        console.warn("ステータス:", calendarResponse.status);
+        console.warn("ステータステキスト:", calendarResponse.statusText);
+        console.warn("エラー詳細:", JSON.stringify(errorData, null, 2));
+        console.warn("モックデータを使用します");
       }
     } catch (error) {
-      // カレンダーAPIの呼び出しに失敗した場合はモックデータを使用
-      console.error(
-        "カレンダーAPIの呼び出しに失敗:",
-        error instanceof Error ? error.message : "Unknown error"
-      );
+      console.warn("=== カレンダーAPIの呼び出しに失敗 ===");
+      if (error instanceof Error) {
+        console.warn("エラーメッセージ:", error.message);
+        console.warn("エラースタック:", error.stack);
+      } else {
+        console.warn("エラー:", error);
+      }
+      console.warn("モックデータを使用します");
     }
 
     // フォントを読み込む
