@@ -8,6 +8,7 @@ import { loadFonts } from "@/utils/fonts";
 import type { DebugInfo } from "@/utils/debug";
 import { getDisplayDimensions, type Orientation } from "@/config/display";
 import type { GoogleCalendarEvent } from "@/utils/calendar";
+import type { WeatherData } from "@/app/api/weather/route";
 
 export const runtime = "nodejs";
 
@@ -73,6 +74,33 @@ export async function GET(request: NextRequest) {
       console.warn("モックデータを使用します");
     }
 
+    // 天気APIから天気情報を取得
+    let weatherData: WeatherData | undefined;
+    try {
+      const weatherResponse = await fetch(`${baseUrl}/api/weather`, {
+        cache: "no-store",
+      });
+      if (weatherResponse.ok) {
+        weatherData = await weatherResponse.json();
+      } else {
+        const errorData = await weatherResponse.json().catch(() => ({}));
+        console.warn("=== 天気情報の取得に失敗 ===");
+        console.warn("ステータス:", weatherResponse.status);
+        console.warn("ステータステキスト:", weatherResponse.statusText);
+        console.warn("エラー詳細:", JSON.stringify(errorData, null, 2));
+        console.warn("モックデータを使用します");
+      }
+    } catch (error) {
+      console.warn("=== 天気APIの呼び出しに失敗 ===");
+      if (error instanceof Error) {
+        console.warn("エラーメッセージ:", error.message);
+        console.warn("エラースタック:", error.stack);
+      } else {
+        console.warn("エラー:", error);
+      }
+      console.warn("モックデータを使用します");
+    }
+
     // フォントを読み込む
     const fonts = await loadFonts();
 
@@ -103,7 +131,11 @@ export async function GET(request: NextRequest) {
             padding: 0,
           }}
         >
-          <EpaperContent baseUrl={baseUrl} events={calendarEvents} />
+          <EpaperContent
+            baseUrl={baseUrl}
+            events={calendarEvents}
+            weatherData={weatherData}
+          />
         </div>
       ),
       imageResponseOptions

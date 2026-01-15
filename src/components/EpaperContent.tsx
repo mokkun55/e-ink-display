@@ -6,17 +6,21 @@
 
 import { MiniCalendar } from "./MiniCalendar";
 import { EventList } from "./EventList";
+import { Weather } from "./Weather";
 import type { GoogleCalendarEvent } from "@/utils/calendar";
 import { getColorIdsByDate } from "@/utils/calendar";
+import type { WeatherData } from "@/app/api/weather/route";
 
 interface EpaperContentProps {
   baseUrl?: string;
   events?: GoogleCalendarEvent[];
+  weatherData?: WeatherData;
 }
 
 export function EpaperContent({
   baseUrl: _baseUrl = "http://localhost:3000", // TODO 環境変数で持つようにしたほうがいいかな
   events: propEvents,
+  weatherData: propWeatherData,
 }: EpaperContentProps) {
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString("ja-JP", {
@@ -277,6 +281,19 @@ export function EpaperContent({
             }}
           >
             <EventList events={calendarEvents} />
+          </div>
+          {/* 天気情報 */}
+          <div
+            style={{
+              display: "flex",
+              border: "1px solid #000000",
+              width: "100%",
+              padding: "5px",
+              borderRadius: "4px",
+              marginTop: "8px",
+            }}
+          >
+            <Weather weatherData={propWeatherData} />
           </div>
         </div>
       </div>
