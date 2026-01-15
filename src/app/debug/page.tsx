@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Orientation } from "@/config/display";
 
 interface DebugInfo {
@@ -18,12 +18,13 @@ export default function DebugPage() {
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(
     null,
   );
+  const [binaryImageUrl, setBinaryImageUrl] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orientation, setOrientation] = useState<Orientation>("landscape");
 
-  const loadImages = async () => {
+  const loadImages = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -53,7 +54,7 @@ export default function DebugPage() {
 
       // 加工後画像を取得
       const processedResponse = await fetch(
-        `/api/epaper?orientation=${orientation}`,
+        `/api/epaper?format=png&orientation=${orientation}`,
       );
       if (!processedResponse.ok) {
         throw new Error("加工後画像の取得に失敗しました");
@@ -63,6 +64,35 @@ export default function DebugPage() {
         if (prev) URL.revokeObjectURL(prev);
         return URL.createObjectURL(processedBlob);
       });
+
+      // バイナリデータを取得
+      const binaryResponse = await fetch(
+        `/api/epaper?orientation=${orientation}`,
+      );
+      if (!binaryResponse.ok) {
+        throw new Error("バイナリデータの取得に失敗しました");
+      }
+      const binaryData = await binaryResponse.arrayBuffer();
+
+      // バイナリデータを画像に変換
+      const decodeResponse = await fetch(
+        `/api/epaper/decode?orientation=${orientation}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+          body: binaryData,
+        }
+      );
+      if (!decodeResponse.ok) {
+        throw new Error("バイナリデータの変換に失敗しました");
+      }
+      const decodedBlob = await decodeResponse.blob();
+      setBinaryImageUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(decodedBlob);
+      });
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "画像の読み込みに失敗しました",
@@ -70,12 +100,14 @@ export default function DebugPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orientation]);
 
   useEffect(() => {
     loadImages();
+  }, [loadImages]);
 
-    // クリーンアップ
+  // クリーンアップ
+  useEffect(() => {
     return () => {
       if (originalImageUrl) {
         URL.revokeObjectURL(originalImageUrl);
@@ -83,8 +115,11 @@ export default function DebugPage() {
       if (processedImageUrl) {
         URL.revokeObjectURL(processedImageUrl);
       }
+      if (binaryImageUrl) {
+        URL.revokeObjectURL(binaryImageUrl);
+      }
     };
-  }, [orientation]);
+  }, [originalImageUrl, processedImageUrl, binaryImageUrl]);
 
   return (
     <div className="container mx-auto p-8">
@@ -92,8 +127,11 @@ export default function DebugPage() {
 
       <div className="mb-4 flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">向き:</label>
+          <label htmlFor="orientation-select" className="text-sm font-medium">
+            向き:
+          </label>
           <select
+            id="orientation-select"
             value={orientation}
             onChange={(e) => setOrientation(e.target.value as Orientation)}
             className="px-3 py-1 border border-gray-300 rounded"
@@ -103,6 +141,7 @@ export default function DebugPage() {
           </select>
         </div>
         <button
+          type="button"
           onClick={loadImages}
           disabled={loading}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
@@ -155,7 +194,7 @@ export default function DebugPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-3 gap-8">
         <div>
           <h2 className="text-2xl font-bold mb-4">元画像</h2>
           {loading && <p>読み込み中...</p>}
@@ -175,6 +214,18 @@ export default function DebugPage() {
             <img
               src={processedImageUrl}
               alt="加工後画像"
+              className="border-2 border-gray-300 rounded"
+            />
+          )}
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-bold mb-4">バイナリ→画像</h2>
+          {loading && <p>読み込み中...</p>}
+          {binaryImageUrl && (
+            <img
+              src={binaryImageUrl}
+              alt="バイナリデータから変換した画像"
               className="border-2 border-gray-300 rounded"
             />
           )}
