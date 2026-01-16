@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { EpaperContent } from "@/components/EpaperContent";
 import { applyFloydSteinbergDithering } from "@/utils/dithering";
-import { getImageData, encodeToPng } from "@/utils/image";
+import { getImageData, encodeToPng, encodeToBinary } from "@/utils/image";
 import { loadFonts } from "@/utils/fonts";
 import type { DebugInfo } from "@/utils/debug";
 import { getDisplayDimensions, type Orientation } from "@/config/display";
@@ -34,6 +34,10 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const original = searchParams.get("original") === "true";
     const debugInfoOnly = searchParams.get("debugInfoOnly") === "true";
+    // 画像形式を返すかどうか（format=png または image=true で画像形式を返す）
+    const format = searchParams.get("format");
+    const imageFormat =
+      format === "png" || searchParams.get("image") === "true";
 
     // 向きを取得（デフォルトはlandscape）
     const orientationParam = searchParams.get("orientation");
@@ -182,11 +186,24 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Step 5: PNG画像を返却（加工後画像）
-    return new Response(new Uint8Array(outputBuffer), {
+    // 画像形式を返す場合（クエリパラメータで指定）
+    if (imageFormat) {
+      return new Response(new Uint8Array(outputBuffer), {
+        status: 200,
+        headers: {
+          "Content-Type": "image/png",
+          "Cache-Control": "no-cache",
+        },
+      });
+    }
+
+    // Step 5: デフォルトはバイナリ形式（application/octet-stream）を返却
+    const binaryData = encodeToBinary(ditheredData, WIDTH, HEIGHT);
+    return new Response(binaryData, {
       status: 200,
       headers: {
-        "Content-Type": "image/png",
+        "Content-Type": "application/octet-stream",
+        "Content-Length": binaryData.length.toString(),
         "Cache-Control": "no-cache",
       },
     });

@@ -97,7 +97,7 @@ pnpm dev
 
 #### `/api/epaper` - 画像生成 API
 
-電子ペーパー用の減色処理済み画像を生成します。
+電子ペーパー用の減色処理済み画像を生成します。ESP32 などのデバイスから直接使用する場合は、デフォルトでバイナリ形式（`application/octet-stream`）を返します。
 
 **基本的な使い方:**
 
@@ -107,22 +107,34 @@ GET /api/epaper
 
 **クエリパラメータ:**
 
-- `original=true`: 減色処理前の元画像を返す
+- `format=png` または `image=true`: PNG 画像形式で返す（ブラウザ確認用）
+- `original=true`: 減色処理前の元画像を返す（PNG 形式）
 - `debugInfoOnly=true`: デバッグ情報（処理時間）を JSON 形式で返す
+- `orientation=landscape` または `orientation=portrait`: 画像の向きを指定（デフォルト: `landscape`）
 
 **レスポンス:**
 
-- 通常: `image/png` 形式の画像データ
-- `debugInfoOnly=true` の場合: JSON 形式のデバッグ情報
+- **デフォルト**: `application/octet-stream` 形式のバイナリデータ（ESP32 用）
+  - データサイズ: `width × height ÷ 2` バイト
+  - 1 バイトに 2 ピクセル分のデータをパック（上位 4 ビット + 下位 4 ビット）
+- `format=png` または `image=true`: `image/png` 形式の画像データ
+- `original=true`: `image/png` 形式の元画像データ
+- `debugInfoOnly=true`: JSON 形式のデバッグ情報
 
 **例:**
 
 ```bash
-# 減色処理済み画像を取得
-curl http://localhost:3000/api/epaper -o output.png
+# ESP32用バイナリデータを取得（デフォルト）
+curl http://localhost:3000/api/epaper -o output.bin
+
+# PNG画像形式で取得（ブラウザ確認用）
+curl http://localhost:3000/api/epaper?format=png -o output.png
 
 # 元画像を取得
 curl http://localhost:3000/api/epaper?original=true -o original.png
+
+# 縦方向の画像を取得
+curl http://localhost:3000/api/epaper?orientation=portrait -o output-portrait.bin
 
 # デバッグ情報を取得（処理時間など）
 curl http://localhost:3000/api/epaper?debugInfoOnly=true
@@ -140,17 +152,63 @@ GET /api/epaper/test
 
 **クエリパラメータ:**
 
-- `original=true`: 減色処理前の元画像を返す
+- `format=png` または `image=true`: PNG 画像形式で返す（ブラウザ確認用）
+- `original=true`: 減色処理前の元画像を返す（PNG 形式）
 - `debugInfoOnly=true`: デバッグ情報（処理時間）を JSON 形式で返す
+- `orientation=landscape` または `orientation=portrait`: 画像の向きを指定（デフォルト: `landscape`）
+
+**レスポンス:**
+
+- **デフォルト**: `application/octet-stream` 形式のバイナリデータ（ESP32 用）
+- `format=png` または `image=true`: `image/png` 形式の画像データ
+- `original=true`: `image/png` 形式の元画像データ
+- `debugInfoOnly=true`: JSON 形式のデバッグ情報
 
 **例:**
 
 ```bash
-# テスト用減色処理済み画像を取得
-curl http://localhost:3000/api/epaper/test -o test-output.png
+# ESP32用バイナリデータを取得（デフォルト）
+curl http://localhost:3000/api/epaper/test -o test-output.bin
+
+# PNG画像形式で取得（ブラウザ確認用）
+curl http://localhost:3000/api/epaper/test?format=png -o test-output.png
 
 # テスト用元画像を取得
 curl http://localhost:3000/api/epaper/test?original=true -o test-original.png
+```
+
+#### `/api/epaper/decode` - バイナリデータを画像に変換する API
+
+ESP32 用バイナリ形式のデータを PNG 画像に変換する API です。バイナリデータを可視化する際に使用します。
+
+**基本的な使い方:**
+
+```bash
+POST /api/epaper/decode
+```
+
+**リクエスト:**
+
+- **Content-Type**: `application/octet-stream`
+- **Body**: バイナリデータ（`width × height ÷ 2` バイト）
+
+**クエリパラメータ:**
+
+- `orientation=landscape` または `orientation=portrait`: 画像の向きを指定（デフォルト: `landscape`）
+
+**レスポンス:**
+
+- `image/png` 形式の画像データ
+
+**例:**
+
+```bash
+# バイナリデータを画像に変換
+curl -X POST \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary @output.bin \
+  "http://localhost:3000/api/epaper/decode?orientation=landscape" \
+  -o decoded.png
 ```
 
 ### プレビューページ
@@ -179,7 +237,7 @@ CSS の都合上、HTML プレビューと PNG プレビューでスタイリン
 
 ### デバッグページ
 
-`/debug` にアクセスすると、元画像と加工後画像を比較表示できるデバッグページが開きます。
+`/debug` にアクセスすると、元画像、加工後画像、バイナリデータから変換した画像を比較表示できるデバッグページが開きます。
 
 ```
 http://localhost:3000/debug
@@ -187,9 +245,12 @@ http://localhost:3000/debug
 
 デバッグページでは以下が確認できます：
 
-- 元画像（減色処理前）
-- 加工後画像（減色処理後）
-- 処理時間の詳細情報
+- **元画像**: 減色処理前の画像
+- **加工後画像**: 減色処理後の PNG 画像
+- **バイナリ → 画像**: ESP32 が受け取るバイナリデータを画像に変換したもの（変換の正確性を確認）
+- **処理時間**: 各処理ステップの詳細な処理時間情報
+
+バイナリデータから変換した画像と加工後画像を比較することで、バイナリ変換が正しく行われているかを確認できます。
 
 ## 🎨 色パレット
 
@@ -304,7 +365,24 @@ OG 画像のフォントを変更する場合は、以下の手順に従って�
 1. **レンダリング**: JSX（HTML/CSS）を `next/og` の `ImageResponse` で SVG→PNG に変換
 2. **Raw データ化**: `sharp` を使用して PNG から RGBA 配列を取得
 3. **減色処理**: フロイド-スタインバーグ・ディザリングアルゴリズムで 7 色パレットに変換
-4. **エンコード**: 処理後のデータを PNG 形式にエンコード
+4. **エンコード**:
+   - **PNG 形式**: 処理後のデータを PNG 形式にエンコード（`format=png` または `image=true` の場合）
+   - **バイナリ形式（デフォルト）**: ESP32 用バイナリ形式にエンコード
+     - 1 バイトに 2 ピクセル分のデータをパック（上位 4 ビット + 下位 4 ビット）
+     - データサイズ: `width × height ÷ 2` バイト
+     - Content-Type: `application/octet-stream`
+
+### バイナリデータ形式
+
+ESP32 用バイナリデータは以下の形式です：
+
+- **データ順序**: 行優先（左 → 右、上 → 下）
+- **ピクセルフォーマット**: 1 バイトに 2 ピクセル分のデータ
+  - 上位 4 ビット: 1 ピクセル目の色情報（パレットインデックス 0-7）
+  - 下位 4 ビット: 2 ピクセル目の色情報（パレットインデックス 0-7）
+- **データサイズ**: `width × height ÷ 2` バイト
+  - 横方向（landscape）: 800 × 480 ÷ 2 = 192,000 バイト
+  - 縦方向（portrait）: 480 × 800 ÷ 2 = 192,000 バイト
 
 ## 🧪 開発
 
@@ -333,7 +411,9 @@ src/
 ├── app/
 │   ├── api/
 │   │   └── epaper/
-│   │       ├── route.tsx       # API エンドポイント
+│   │       ├── route.tsx       # メインAPI エンドポイント
+│   │       ├── decode/
+│   │       │   └── route.ts    # バイナリデータを画像に変換するAPI
 │   │       └── test/
 │   │           └── route.tsx   # テスト用API エンドポイント
 │   ├── debug/
@@ -349,7 +429,7 @@ src/
 └── utils/
     ├── dithering.ts            # 減色・ディザリング処理
     ├── fonts.ts                # フォント読み込み
-    ├── image.ts                # 画像処理ユーティリティ
+    ├── image.ts                # 画像処理ユーティリティ（PNG変換、バイナリ変換）
     └── debug.tsx               # デバッグ機能
 ```
 
