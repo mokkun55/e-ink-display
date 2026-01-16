@@ -9,6 +9,8 @@ import { MiniCalendar } from "./MiniCalendar";
 import { EventList } from "./EventList";
 import type { GoogleCalendarEvent } from "@/utils/calendar";
 import { getColorIdsByDate } from "@/utils/calendar";
+import { Weather } from "./Weather";
+import type { TodayWeather } from "@/types/weather";
 
 interface EpaperContentProps {
   baseUrl?: string;
@@ -20,10 +22,17 @@ export function EpaperContent({
   events: propEvents,
 }: EpaperContentProps) {
   const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString("ja-JP", {
+  const month = currentDate.toLocaleDateString("ja-JP", {
     month: "long",
+  });
+  const day = currentDate.toLocaleDateString("ja-JP", {
     day: "numeric",
+  });
+  const weekday_ja = currentDate.toLocaleDateString("ja-JP", {
     weekday: "short",
+  });
+  const weekday_en = currentDate.toLocaleDateString("en-US", {
+    weekday: "long",
   });
 
   // Google Calendar API形式のモック予定データ（フォールバック用）
@@ -185,11 +194,34 @@ export function EpaperContent({
     },
   ];
 
+  // OpenWeather APIのモックデータ
+  const mockWeatherData: TodayWeather = {
+    maxTemperature: 20,
+    minTemperature: 10,
+    morning: {
+      weatherCode: 800,
+      temperature: 15,
+      precipitationProbability: 10,
+    },
+    afternoon: {
+      weatherCode: 800,
+      temperature: 15,
+      precipitationProbability: 10,
+    },
+    evening: {
+      weatherCode: 100,
+      temperature: 15,
+      precipitationProbability: 10,
+    },
+  };
+
   // 予定データ（propsで渡された場合はそれを使用、なければモックデータ）
   const calendarEvents = propEvents ?? mockCalendarEvents;
 
   // カレンダー表示用の色データ（日付: 色の配列）
   const calendarColorData = getColorIdsByDate(calendarEvents);
+
+  const weatherData = mockWeatherData; // TODO 実際のデータに変更する
 
   return (
     <div
@@ -238,7 +270,7 @@ export function EpaperContent({
           borderLeft: "4px solid #000000",
         }}
       >
-        {/* 日付 */}
+        {/* 日付セクション(日付、今日の天気) */}
         <div
           style={{
             display: "flex",
@@ -247,41 +279,92 @@ export function EpaperContent({
             alignItems: "center",
           }}
         >
-          <p
+          {/* 日付 */}
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <p
+              style={{
+                margin: 0,
+                padding: 0,
+                fontSize: "24px",
+              }}
+            >
+              {month}
+              {day}
+            </p>
+            <p
+              style={{
+                margin: 0,
+                padding: 0,
+                fontSize: "12px",
+              }}
+            >
+              {weekday_en} ({weekday_ja})
+            </p>
+          </div>
+
+          {/* 天気 */}
+          <div
             style={{
-              margin: 0,
-              padding: 0,
-              // fontWeight: "bold",
-              fontSize: "24px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
             }}
           >
-            {formattedDate}
-          </p>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2" />
-            <path d="M12 20v2" />
-            <path d="m4.93 4.93 1.41 1.41" />
-            <path d="m17.66 17.66 1.41 1.41" />
-            <path d="M2 12h2" />
-            <path d="M20 12h2" />
-            <path d="m6.34 17.66-1.41 1.41" />
-            <path d="m19.07 4.93-1.41 1.41" />
-          </svg>
+            {/* TODO 天気アイコンを表示する */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2" />
+              <path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" />
+              <path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" />
+              <path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" />
+              <path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+
+            {/* 最高最低気温 */}
+            <div style={{ display: "flex", flexDirection: "row", gap: "4px" }}>
+              <p
+                style={{
+                  margin: 0,
+                  padding: 0,
+                  fontSize: "12px",
+                  color: "#f00",
+                }}
+              >
+                {weatherData.maxTemperature}°C
+              </p>
+              <p style={{ margin: 0, padding: 0, fontSize: "12px" }}>/</p>
+              <p
+                style={{
+                  margin: 0,
+                  padding: 0,
+                  fontSize: "12px",
+                  color: "#00f",
+                }}
+              >
+                {weatherData.minTemperature}°C
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* 枠線 */}
         <div style={{ borderBottom: "2px solid #000000" }} />
+
+        {/* 天気 */}
+        <Weather weatherData={weatherData} />
 
         {/* カレンダー・予定 */}
         <div
