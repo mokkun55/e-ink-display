@@ -15,11 +15,13 @@ import type { TodayWeather } from "@/types/weather";
 interface EpaperContentProps {
   baseUrl?: string;
   events?: GoogleCalendarEvent[];
+  weatherData?: TodayWeather;
 }
 
 export function EpaperContent({
   baseUrl: _baseUrl = "http://localhost:3000", // TODO 環境変数で持つようにしたほうがいいかな
   events: propEvents,
+  weatherData: propWeatherData,
 }: EpaperContentProps) {
   const currentDate = new Date();
   const month = currentDate.toLocaleDateString("ja-JP", {
@@ -194,34 +196,144 @@ export function EpaperContent({
     },
   ];
 
-  // OpenWeather APIのモックデータ
-  const mockWeatherData: TodayWeather = {
-    maxTemperature: 20,
-    minTemperature: 10,
-    morning: {
-      weatherCode: 800,
-      temperature: 15,
-      precipitationProbability: 10,
-    },
-    afternoon: {
-      weatherCode: 800,
-      temperature: 15,
-      precipitationProbability: 10,
-    },
-    evening: {
-      weatherCode: 100,
-      temperature: 15,
-      precipitationProbability: 10,
-    },
-  };
-
   // 予定データ（propsで渡された場合はそれを使用、なければモックデータ）
   const calendarEvents = propEvents ?? mockCalendarEvents;
 
   // カレンダー表示用の色データ（日付: 色の配列）
   const calendarColorData = getColorIdsByDate(calendarEvents);
 
-  const weatherData = mockWeatherData; // TODO 実際のデータに変更する
+  // 天気データ（propsで渡された場合のみ使用）
+  const weatherData = propWeatherData;
+
+  // 天気コードからSVGアイコンを取得する関数（仮実装）
+  const getWeatherIcon = (weatherCode: number, size: number = 32) => {
+    // OpenWeather APIの天気コードに基づいてアイコンを返す
+    // 800: 晴天
+    if (weatherCode === 800) {
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2" />
+          <path d="M12 20v2" />
+          <path d="m4.93 4.93 1.41 1.41" />
+          <path d="m17.66 17.66 1.41 1.41" />
+          <path d="M2 12h2" />
+          <path d="M20 12h2" />
+          <path d="m6.34 17.66-1.41 1.41" />
+          <path d="m19.07 4.93-1.41 1.41" />
+        </svg>
+      );
+    }
+    // 801-804: 曇り
+    if (weatherCode >= 801 && weatherCode <= 804) {
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+        </svg>
+      );
+    }
+    // 300-321, 500-531: 雨
+    if (
+      (weatherCode >= 300 && weatherCode <= 321) ||
+      (weatherCode >= 500 && weatherCode <= 531)
+    ) {
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M16 13v8a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1v-8" />
+          <path d="M23 13v8a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-8" />
+          <path d="M8 13l2-9h8l2 9" />
+          <path d="M7 13H1" />
+          <path d="M23 13h-6" />
+        </svg>
+      );
+    }
+    // 600-622: 雪
+    if (weatherCode >= 600 && weatherCode <= 622) {
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 2v6m0 6v6" />
+          <path d="m8 8-4 4 4 4" />
+          <path d="m16 8 4 4-4 4" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+      );
+    }
+    // 200-232: 雷
+    if (weatherCode >= 200 && weatherCode <= 232) {
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        </svg>
+      );
+    }
+    // その他（デフォルト）
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v6l4 2" />
+      </svg>
+    );
+  };
 
   return (
     <div
@@ -303,68 +415,52 @@ export function EpaperContent({
           </div>
 
           {/* 天気 */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            {/* TODO 天気アイコンを表示する */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {weatherData && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
             >
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2" />
-              <path d="M12 20v2" />
-              <path d="m4.93 4.93 1.41 1.41" />
-              <path d="m17.66 17.66 1.41 1.41" />
-              <path d="M2 12h2" />
-              <path d="M20 12h2" />
-              <path d="m6.34 17.66-1.41 1.41" />
-              <path d="m19.07 4.93-1.41 1.41" />
-            </svg>
+              {/* 天気アイコン（午後の天気コードを使用） */}
+              {getWeatherIcon(weatherData.afternoon.weatherCode, 32)}
 
-            {/* 最高最低気温 */}
-            <div style={{ display: "flex", flexDirection: "row", gap: "4px" }}>
-              <p
-                style={{
-                  margin: 0,
-                  padding: 0,
-                  fontSize: "12px",
-                  color: "#f00",
-                }}
+              {/* 最高最低気温 */}
+              <div
+                style={{ display: "flex", flexDirection: "row", gap: "4px" }}
               >
-                {weatherData.maxTemperature}°C
-              </p>
-              <p style={{ margin: 0, padding: 0, fontSize: "12px" }}>/</p>
-              <p
-                style={{
-                  margin: 0,
-                  padding: 0,
-                  fontSize: "12px",
-                  color: "#00f",
-                }}
-              >
-                {weatherData.minTemperature}°C
-              </p>
+                <p
+                  style={{
+                    margin: 0,
+                    padding: 0,
+                    fontSize: "12px",
+                    color: "#f00",
+                  }}
+                >
+                  {weatherData.maxTemperature}°C
+                </p>
+                <p style={{ margin: 0, padding: 0, fontSize: "12px" }}>/</p>
+                <p
+                  style={{
+                    margin: 0,
+                    padding: 0,
+                    fontSize: "12px",
+                    color: "#00f",
+                  }}
+                >
+                  {weatherData.minTemperature}°C
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* 枠線 */}
         <div style={{ borderBottom: "2px solid #000000" }} />
 
         {/* 天気 */}
-        <Weather weatherData={weatherData} />
+        {weatherData && <Weather weatherData={weatherData} />}
 
         {/* カレンダー・予定 */}
         <div
