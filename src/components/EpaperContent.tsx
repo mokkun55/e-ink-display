@@ -2,6 +2,7 @@
  * 電子ペーパー表示用コンテンツ
  * next/ogのImageResponseで使用するReactコンポーネント
  */
+/** biome-ignore-all lint/a11y/noSvgWithoutTitle: SVGのtitle要素はアクセシビリティのために必要 */
 /** biome-ignore-all lint/performance/noImgElement: ogにするので許可する */
 
 import { MiniCalendar } from "./MiniCalendar";
@@ -20,7 +21,6 @@ export function EpaperContent({
 }: EpaperContentProps) {
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString("ja-JP", {
-    year: "numeric",
     month: "long",
     day: "numeric",
     weekday: "short",
@@ -219,10 +219,7 @@ export function EpaperContent({
           bottom: 0,
         }}
       >
-        <img
-          src={`https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop`}
-          alt="pixel-image"
-        />
+        <img src={`https://picsum.photos/600/480`} alt="pixel-image" />
       </div>
 
       {/* 下側セクション */}
@@ -232,9 +229,8 @@ export function EpaperContent({
           top: 0,
           right: 0,
           display: "flex",
-          padding: "10px",
+          padding: "16px",
           gap: "10px",
-          alignItems: "center",
           width: "30%",
           height: "100%",
           flexDirection: "column",
@@ -242,38 +238,77 @@ export function EpaperContent({
           borderLeft: "4px solid #000000",
         }}
       >
-        {/* 日付・カレンダー・予定 */}
+        {/* 日付 */}
         <div
           style={{
             display: "flex",
-            gap: "4px",
-            flexDirection: "column",
-            alignItems: "center",
             width: "100%",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          <p style={{ margin: 0, padding: 0 }}>{formattedDate}</p>
+          <p
+            style={{
+              margin: 0,
+              padding: 0,
+              // fontWeight: "bold",
+              fontSize: "24px",
+            }}
+          >
+            {formattedDate}
+          </p>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="m4.93 4.93 1.41 1.41" />
+            <path d="m17.66 17.66 1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="m6.34 17.66-1.41 1.41" />
+            <path d="m19.07 4.93-1.41 1.41" />
+          </svg>
+        </div>
+
+        {/* 枠線 */}
+        <div style={{ borderBottom: "2px solid #000000" }} />
+
+        {/* カレンダー・予定 */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           {/* ミニカレンダー */}
           <div
             style={{
               display: "flex",
-              border: "1px solid #000000",
               width: "100%",
-              padding: "5px",
-              borderRadius: "4px",
             }}
           >
             <MiniCalendar events={calendarColorData} />
           </div>
+
+          <div
+            style={{ borderBottom: "2px dashed #000000", margin: "8px 0" }}
+          />
+
           {/* 予定リスト */}
           <div
             style={{
               display: "flex",
-              border: "1px solid #000000",
               width: "100%",
-              padding: "5px",
-              borderRadius: "4px",
-              marginTop: "8px",
             }}
           >
             <EventList events={calendarEvents} />
