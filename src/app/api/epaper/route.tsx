@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
 
     // Step 5: デフォルトはバイナリ形式（application/octet-stream）を返却
     const binaryData = encodeToBinary(ditheredData, WIDTH, HEIGHT);
-    return new Response(new Uint8Array(binaryData), {
+    return new Response(binaryData, {
       status: 200,
       headers: {
         "Content-Type": "application/octet-stream",
