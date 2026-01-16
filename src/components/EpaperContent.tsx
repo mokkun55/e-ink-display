@@ -234,7 +234,7 @@ export function EpaperContent({
           bottom: 0,
         }}
       >
-        <img src={`https://picsum.photos/600/480`} alt="pixel-image" />
+        <img src={`https://picsum.photos/540/480`} alt="pixel-image" />
       </div>
 
       {/* 下側セクション */}
