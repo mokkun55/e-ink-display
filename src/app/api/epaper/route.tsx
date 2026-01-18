@@ -8,6 +8,7 @@ import { loadFonts } from "@/utils/fonts";
 import type { DebugInfo } from "@/utils/debug";
 import { getDisplayDimensions, type Orientation } from "@/config/display";
 import type { GoogleCalendarEvent } from "@/utils/calendar";
+import type { TodayWeather } from "@/types/weather";
 
 export const runtime = "nodejs";
 
@@ -77,6 +78,31 @@ export async function GET(request: NextRequest) {
       console.warn("モックデータを使用します");
     }
 
+    // 天気APIから天気情報を取得
+    let weatherData: TodayWeather | undefined;
+    try {
+      const weatherResponse = await fetch(`${baseUrl}/api/weather`, {
+        cache: "no-store",
+      });
+      if (weatherResponse.ok) {
+        weatherData = await weatherResponse.json();
+      } else {
+        const errorData = await weatherResponse.json().catch(() => ({}));
+        console.error("=== 天気情報の取得に失敗 ===");
+        console.error("ステータス:", weatherResponse.status);
+        console.error("ステータステキスト:", weatherResponse.statusText);
+        console.error("エラー詳細:", JSON.stringify(errorData, null, 2));
+      }
+    } catch (error) {
+      console.error("=== 天気APIの呼び出しに失敗 ===");
+      if (error instanceof Error) {
+        console.error("エラーメッセージ:", error.message);
+        console.error("エラースタック:", error.stack);
+      } else {
+        console.error("エラー:", error);
+      }
+    }
+
     // フォントを読み込む
     const fonts = await loadFonts();
 
@@ -107,7 +133,11 @@ export async function GET(request: NextRequest) {
             padding: 0,
           }}
         >
-          <EpaperContent baseUrl={baseUrl} events={calendarEvents} />
+          <EpaperContent
+            baseUrl={baseUrl}
+            events={calendarEvents}
+            weatherData={weatherData}
+          />
         </div>
       ),
       imageResponseOptions
@@ -167,7 +197,7 @@ export async function GET(request: NextRequest) {
 
     // Step 5: デフォルトはバイナリ形式（application/octet-stream）を返却
     const binaryData = encodeToBinary(ditheredData, WIDTH, HEIGHT);
-    return new Response(binaryData, {
+    return new Response(Uint8Array.from(binaryData), {
       status: 200,
       headers: {
         "Content-Type": "application/octet-stream",

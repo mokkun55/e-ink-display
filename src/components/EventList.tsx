@@ -57,7 +57,7 @@ export function EventList({
           display: "flex",
           flexDirection: "column",
           width: "100%",
-          fontSize: "12px",
+          fontSize: "14px",
           padding: "8px",
         }}
       >
@@ -72,13 +72,13 @@ export function EventList({
         display: "flex",
         flexDirection: "column",
         width: "100%",
-        fontSize: "12px",
+        fontSize: "14px",
       }}
     >
       {displayEvents.map((event, index) => {
         const eventColor = getColorByColorId(event.colorId);
-        const hasLocation = !!event.location;
-        const hasDescription = !!event.description;
+        // const hasLocation = !!event.location;
+        // const hasDescription = !!event.description;
         const isAllDay = !event.start.dateTime && !!event.start.date;
         const startTime = event.start.dateTime
           ? new Date(event.start.dateTime).toLocaleTimeString("ja-JP", {
@@ -143,8 +143,8 @@ export function EventList({
             >
               {event.summary}
             </div>
-            {/* アイコン（場所・メモ） */}
-            <div
+            {/* アイコン（場所・メモ）※不要だったためコメントアウト */}
+            {/* <div
               style={{
                 display: "flex",
                 gap: "2px",
@@ -152,9 +152,8 @@ export function EventList({
                 flexShrink: 0,
               }}
             >
-              {hasLocation && <span style={{ fontSize: "10px" }}>📍</span>}
-              {hasDescription && <span style={{ fontSize: "10px" }}>📝</span>}
-            </div>
+              {/* {hasLocation && <span style={{ fontSize: "10px" }}>📍</span>}
+              {hasDescription && <span style={{ fontSize: "10px" }}>📝</span>} */}
           </div>
         );
       })}
