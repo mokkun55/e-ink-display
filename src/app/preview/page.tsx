@@ -41,7 +41,7 @@ export default function PreviewPage() {
 
       // 加工後画像を取得
       const processedResponse = await fetch(
-        `/api/epaper?orientation=${orientation}&t=${Date.now()}`,
+        `/api/epaper?format=png&orientation=${orientation}&t=${Date.now()}`,
       );
       if (!processedResponse.ok) {
         throw new Error("加工後画像の取得に失敗しました");

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "generate-api-key-hash": "node scripts/generate-api-key-hash.js"
   },
   "dependencies": {
     "googleapis": "^170.0.0",
