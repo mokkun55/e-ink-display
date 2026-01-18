@@ -2,6 +2,7 @@
  * 電子ペーパー表示用コンテンツ
  * next/ogのImageResponseで使用するReactコンポーネント
  */
+/** biome-ignore-all lint/a11y/noSvgWithoutTitle: SVGのtitle要素はアクセシビリティのために必要 */
 /** biome-ignore-all lint/performance/noImgElement: ogにするので許可する */
 
 import { MiniCalendar } from "./MiniCalendar";
@@ -9,12 +10,13 @@ import { EventList } from "./EventList";
 import { Weather } from "./Weather";
 import type { GoogleCalendarEvent } from "@/utils/calendar";
 import { getColorIdsByDate } from "@/utils/calendar";
-import type { WeatherData } from "@/app/api/weather/route";
+import type { TodayWeather } from "@/types/weather";
+import { getWeatherIcon } from "@/utils/weatherIcons";
 
 interface EpaperContentProps {
   baseUrl?: string;
   events?: GoogleCalendarEvent[];
-  weatherData?: WeatherData;
+  weatherData?: TodayWeather;
 }
 
 export function EpaperContent({
@@ -23,11 +25,17 @@ export function EpaperContent({
   weatherData: propWeatherData,
 }: EpaperContentProps) {
   const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString("ja-JP", {
-    year: "numeric",
+  const month = currentDate.toLocaleDateString("ja-JP", {
     month: "long",
+  });
+  const day = currentDate.toLocaleDateString("ja-JP", {
     day: "numeric",
+  });
+  const weekday_ja = currentDate.toLocaleDateString("ja-JP", {
     weekday: "short",
+  });
+  const weekday_en = currentDate.toLocaleDateString("en-US", {
+    weekday: "long",
   });
 
   // Google Calendar API形式のモック予定データ（フォールバック用）
@@ -195,6 +203,9 @@ export function EpaperContent({
   // カレンダー表示用の色データ（日付: 色の配列）
   const calendarColorData = getColorIdsByDate(calendarEvents);
 
+  // 天気データ（propsで渡された場合のみ使用）
+  const weatherData = propWeatherData;
+
   return (
     <div
       style={{
@@ -223,10 +234,7 @@ export function EpaperContent({
           bottom: 0,
         }}
       >
-        <img
-          src={`https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop`}
-          alt="pixel-image"
-        />
+        <img src={`https://picsum.photos/540/480`} alt="pixel-image" />
       </div>
 
       {/* 下側セクション */}
@@ -236,9 +244,8 @@ export function EpaperContent({
           top: 0,
           right: 0,
           display: "flex",
-          padding: "10px",
+          padding: "16px",
           gap: "10px",
-          alignItems: "center",
           width: "30%",
           height: "100%",
           flexDirection: "column",
@@ -246,55 +253,131 @@ export function EpaperContent({
           borderLeft: "4px solid #000000",
         }}
       >
-        {/* 日付・カレンダー・予定 */}
+        {/* 日付セクション(日付、今日の天気) */}
         <div
           style={{
             display: "flex",
-            gap: "4px",
-            flexDirection: "column",
-            alignItems: "center",
             width: "100%",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          <p style={{ margin: 0, padding: 0 }}>{formattedDate}</p>
+          {/* 日付 */}
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <p
+              style={{
+                margin: 0,
+                padding: 0,
+                fontSize: "24px",
+              }}
+            >
+              {month}
+              {day}
+            </p>
+            <p
+              style={{
+                margin: 0,
+                padding: 0,
+                fontSize: "12px",
+              }}
+            >
+              {weekday_en} ({weekday_ja})
+            </p>
+          </div>
+
+          {/* 天気 */}
+          {weatherData && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              {/* 天気アイコン（午後の天気コードを使用） */}
+              {getWeatherIcon(weatherData.afternoon.weatherCode, 32)}
+
+              {/* 最高最低気温 */}
+              <div
+                style={{ display: "flex", flexDirection: "row", gap: "4px" }}
+              >
+                <p
+                  style={{
+                    margin: 0,
+                    padding: 0,
+                    fontSize: "12px",
+                    color: "#f00",
+                  }}
+                >
+                  {weatherData.maxTemperature}°C
+                </p>
+                <p style={{ margin: 0, padding: 0, fontSize: "12px" }}>/</p>
+                <p
+                  style={{
+                    margin: 0,
+                    padding: 0,
+                    fontSize: "12px",
+                    color: "#00f",
+                  }}
+                >
+                  {weatherData.minTemperature}°C
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 枠線 */}
+        <div style={{ borderBottom: "2px solid #000000" }} />
+
+        {/* 天気 */}
+        {weatherData && <Weather weatherData={weatherData} />}
+
+        {/* カレンダー・予定 */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           {/* ミニカレンダー */}
           <div
             style={{
               display: "flex",
-              border: "1px solid #000000",
               width: "100%",
-              padding: "5px",
-              borderRadius: "4px",
             }}
           >
             <MiniCalendar events={calendarColorData} />
           </div>
+
+          <div
+            style={{ borderBottom: "2px dashed #000000", margin: "8px 0" }}
+          />
+
           {/* 予定リスト */}
           <div
             style={{
               display: "flex",
-              border: "1px solid #000000",
               width: "100%",
-              padding: "5px",
-              borderRadius: "4px",
-              marginTop: "8px",
             }}
           >
             <EventList events={calendarEvents} />
           </div>
           {/* 天気情報 */}
-          <div
-            style={{
-              display: "flex",
-              border: "1px solid #000000",
-              width: "100%",
-              padding: "5px",
-              borderRadius: "4px",
-              marginTop: "8px",
-            }}
-          >
-            <Weather weatherData={propWeatherData} />
-          </div>
+          {propWeatherData && (
+            <div
+              style={{
+                display: "flex",
+                border: "1px solid #000000",
+                width: "100%",
+                padding: "5px",
+                borderRadius: "4px",
+                marginTop: "8px",
+              }}
+            >
+              <Weather weatherData={propWeatherData} />
+            </div>
+          )}
         </div>
       </div>
     </div>

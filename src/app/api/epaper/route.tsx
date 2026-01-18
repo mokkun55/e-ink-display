@@ -8,7 +8,7 @@ import { loadFonts } from "@/utils/fonts";
 import type { DebugInfo } from "@/utils/debug";
 import { getDisplayDimensions, type Orientation } from "@/config/display";
 import type { GoogleCalendarEvent } from "@/utils/calendar";
-import type { WeatherData } from "@/app/api/weather/route";
+import type { TodayWeather } from "@/types/weather";
 
 export const runtime = "nodejs";
 
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 天気APIから天気情報を取得
-    let weatherData: WeatherData | undefined;
+    let weatherData: TodayWeather | undefined;
     try {
       const weatherResponse = await fetch(`${baseUrl}/api/weather`, {
         cache: "no-store",
@@ -88,21 +88,19 @@ export async function GET(request: NextRequest) {
         weatherData = await weatherResponse.json();
       } else {
         const errorData = await weatherResponse.json().catch(() => ({}));
-        console.warn("=== 天気情報の取得に失敗 ===");
-        console.warn("ステータス:", weatherResponse.status);
-        console.warn("ステータステキスト:", weatherResponse.statusText);
-        console.warn("エラー詳細:", JSON.stringify(errorData, null, 2));
-        console.warn("モックデータを使用します");
+        console.error("=== 天気情報の取得に失敗 ===");
+        console.error("ステータス:", weatherResponse.status);
+        console.error("ステータステキスト:", weatherResponse.statusText);
+        console.error("エラー詳細:", JSON.stringify(errorData, null, 2));
       }
     } catch (error) {
-      console.warn("=== 天気APIの呼び出しに失敗 ===");
+      console.error("=== 天気APIの呼び出しに失敗 ===");
       if (error instanceof Error) {
-        console.warn("エラーメッセージ:", error.message);
-        console.warn("エラースタック:", error.stack);
+        console.error("エラーメッセージ:", error.message);
+        console.error("エラースタック:", error.stack);
       } else {
-        console.warn("エラー:", error);
+        console.error("エラー:", error);
       }
-      console.warn("モックデータを使用します");
     }
 
     // フォントを読み込む
@@ -199,7 +197,7 @@ export async function GET(request: NextRequest) {
 
     // Step 5: デフォルトはバイナリ形式（application/octet-stream）を返却
     const binaryData = encodeToBinary(ditheredData, WIDTH, HEIGHT);
-    return new Response(binaryData, {
+    return new Response(Uint8Array.from(binaryData), {
       status: 200,
       headers: {
         "Content-Type": "application/octet-stream",
