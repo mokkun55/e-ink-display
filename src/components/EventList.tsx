@@ -154,7 +154,6 @@ export function EventList({
             >
               {/* {hasLocation && <span style={{ fontSize: "10px" }}>📍</span>}
               {hasDescription && <span style={{ fontSize: "10px" }}>📝</span>} */}
-            </div> */}
           </div>
         );
       })}

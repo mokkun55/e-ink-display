@@ -363,21 +363,6 @@ export function EpaperContent({
           >
             <EventList events={calendarEvents} />
           </div>
-          {/* 天気情報 */}
-          {propWeatherData && (
-            <div
-              style={{
-                display: "flex",
-                border: "1px solid #000000",
-                width: "100%",
-                padding: "5px",
-                borderRadius: "4px",
-                marginTop: "8px",
-              }}
-            >
-              <Weather weatherData={propWeatherData} />
-            </div>
-          )}
         </div>
       </div>
     </div>
