@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const pngBuffer = await encodeToPng(rgbaData, width, height);
 
     // PNG画像を返却
-    return new Response(pngBuffer, {
+    return new Response(Uint8Array.from(pngBuffer), {
       status: 200,
       headers: {
         "Content-Type": "image/png",

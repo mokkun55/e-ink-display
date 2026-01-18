@@ -34,7 +34,8 @@ export async function GET(request: NextRequest) {
     const debugInfoOnly = searchParams.get("debugInfoOnly") === "true";
     // 画像形式を返すかどうか（format=png または image=true で画像形式を返す）
     const format = searchParams.get("format");
-    const imageFormat = format === "png" || searchParams.get("image") === "true";
+    const imageFormat =
+      format === "png" || searchParams.get("image") === "true";
 
     // 向きを取得（デフォルトはlandscape）
     const orientationParam = searchParams.get("orientation");
@@ -134,7 +135,7 @@ export async function GET(request: NextRequest) {
 
     // Step 5: デフォルトはバイナリ形式（application/octet-stream）を返却
     const binaryData = encodeToBinary(ditheredData, WIDTH, HEIGHT);
-    return new Response(binaryData, {
+    return new Response(Uint8Array.from(binaryData), {
       status: 200,
       headers: {
         "Content-Type": "application/octet-stream",
