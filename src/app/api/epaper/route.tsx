@@ -50,11 +50,19 @@ export async function GET(request: NextRequest) {
     // ベースURLを取得（絶対URL用）
     const baseUrl = request.nextUrl.origin;
 
+    // /api/* はX-API-Keyが必須（認証ミドルウェア/プロキシ想定）。
+    // このエンドポイント内から /api/calendar, /api/weather を呼ぶ際にも同じキーを付与する。
+    const apiKeyFromRequest =
+      request.headers.get("X-API-Key") ?? request.headers.get("x-api-key");
+    const apiKey = apiKeyFromRequest ?? process.env.API_KEY;
+    const authHeaders = apiKey ? { "X-API-Key": apiKey } : undefined;
+
     // Google Calendar APIから予定を取得
     let calendarEvents: GoogleCalendarEvent[] | undefined;
     try {
       const calendarResponse = await fetch(`${baseUrl}/api/calendar`, {
         cache: "no-store",
+        headers: authHeaders,
       });
       if (calendarResponse.ok) {
         const calendarData = await calendarResponse.json();
@@ -83,6 +91,7 @@ export async function GET(request: NextRequest) {
     try {
       const weatherResponse = await fetch(`${baseUrl}/api/weather`, {
         cache: "no-store",
+        headers: authHeaders,
       });
       if (weatherResponse.ok) {
         weatherData = await weatherResponse.json();
